@@ -9,7 +9,14 @@ import javax.persistence.Query;
 import java.util.List;
 
 public class UserDaoHibernateImpl implements UserDao {
-    private String sql;
+    private static final String SQL_CREATE = "CREATE TABLE IF NOT EXISTS users ("
+            + "id BIGINT AUTO_INCREMENT PRIMARY KEY, "
+            + "name VARCHAR(100) NOT NULL, "
+            + "lastName VARCHAR(100) NOT NULL, "
+            + "age TINYINT NOT NULL)";
+    private static final String SQL_DROP = "DROP TABLE IF EXISTS users";
+    private static final String SQL_TRUNCATE = "TRUNCATE TABLE users";
+
 
     public UserDaoHibernateImpl() {
 
@@ -21,12 +28,7 @@ public class UserDaoHibernateImpl implements UserDao {
         Transaction transaction = null;
         try (Session session = Util.getSessionFactory().openSession()) {
             transaction = session.beginTransaction();
-            sql = "CREATE TABLE IF NOT EXISTS users ("
-                    + "id BIGINT AUTO_INCREMENT PRIMARY KEY, "
-                    + "name VARCHAR(100) NOT NULL, "
-                    + "lastName VARCHAR(100) NOT NULL, "
-                    + "age TINYINT NOT NULL)";
-            Query query = session.createSQLQuery(sql);
+            Query query = session.createSQLQuery(SQL_CREATE);
             query.executeUpdate();
             transaction.commit();
         } catch (RuntimeException e) {
@@ -43,8 +45,7 @@ public class UserDaoHibernateImpl implements UserDao {
         Transaction transaction = null;
         try (Session session = Util.getSessionFactory().openSession()) {
             transaction = session.beginTransaction();
-            sql = "DROP TABLE IF EXISTS users";
-            Query query = session.createSQLQuery(sql);
+            Query query = session.createSQLQuery(SQL_DROP);
             query.executeUpdate();
             transaction.commit();
         } catch (RuntimeException e) {
@@ -94,6 +95,9 @@ public class UserDaoHibernateImpl implements UserDao {
         try (Session session = Util.getSessionFactory().openSession()) {
             return session.createQuery("from User").list();
         }
+        catch (RuntimeException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Override
@@ -101,8 +105,7 @@ public class UserDaoHibernateImpl implements UserDao {
         Transaction transaction = null;
         try (Session session = Util.getSessionFactory().openSession()) {
             transaction = session.beginTransaction();
-            sql = "TRUNCATE TABLE users";
-            session.createSQLQuery(sql).executeUpdate();
+            session.createSQLQuery(SQL_TRUNCATE).executeUpdate();
         }
         catch (RuntimeException e) {
             if (transaction != null) {
